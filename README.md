@@ -1,5 +1,9 @@
 # Beads UI
 
+[![Release](https://img.shields.io/github/v/release/DEVtheOPS/beads-ui-vscode-ext)](https://github.com/DEVtheOPS/beads-ui-vscode-ext/releases)
+[![CI](https://img.shields.io/github/actions/workflow/status/DEVtheOPS/beads-ui-vscode-ext/ci.yml?branch=main&label=tests)](https://github.com/DEVtheOPS/beads-ui-vscode-ext/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/DEVtheOPS/beads-ui-vscode-ext)](LICENSE)
+
 A VSCode extension that provides a user-friendly interface for working with [beads](https://github.com/steveyegge/beads) - a dependency-aware issue tracker where issues are chained together like beads.
 
 ## Features
@@ -26,13 +30,17 @@ A VSCode extension that provides a user-friendly interface for working with [bea
 
 1. Clone this repository
 2. Install dependencies:
+
    ```bash
    npm install
    ```
+
 3. Build the extension:
+
    ```bash
    npm run compile
    ```
+
 4. Press `F5` in VSCode to launch the Extension Development Host
 
 ## Usage
@@ -49,7 +57,7 @@ A VSCode extension that provides a user-friendly interface for working with [bea
 
 ### Project Structure
 
-```
+```plain
 src/
 ├── extension.ts                    # Extension entry point
 ├── types.ts                        # TypeScript interfaces
@@ -118,6 +126,7 @@ This extension does not currently add any VSCode settings.
 ### 0.0.1
 
 Initial release:
+
 - Activity bar view for browsing beads issues
 - Search and filter functionality
 - Detailed issue view with dependencies
@@ -126,6 +135,7 @@ Initial release:
 ## Contributing
 
 This extension uses:
+
 - TypeScript for type safety
 - Webpack for bundling
 - Edge.js for templating
