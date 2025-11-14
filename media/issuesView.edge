@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy" content="{{csp}}">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body {
+    font-family: var(--vscode-font-family);
+    font-size: var(--vscode-font-size);
+    color: var(--vscode-foreground);
+    background-color: transparent;
+    margin: 0;
+    padding: 0.75rem;
+    box-sizing: border-box;
+  }
+  .toolbar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  .toolbar input,
+  .toolbar select {
+    flex: 1;
+    padding: 0.3rem 0.4rem;
+    background: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border, transparent);
+    border-radius: 4px;
+  }
+  .toolbar button {
+    padding: 0 0.8rem;
+    background: var(--vscode-button-secondaryBackground);
+    border: 1px solid var(--vscode-button-border, transparent);
+    color: var(--vscode-button-secondaryForeground);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .toolbar button:hover {
+    background: var(--vscode-button-secondaryHoverBackground);
+  }
+  .issues {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .issue {
+    padding: 0.6rem;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 4px;
+    background: var(--vscode-editorWidget-background);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .issue:focus,
+  .issue:hover {
+    outline: none;
+    background: var(--vscode-list-hoverBackground);
+    border-color: var(--vscode-focusBorder);
+  }
+  .issue-title {
+    font-weight: 600;
+    margin-bottom: 0.2rem;
+  }
+  .issue-meta {
+    font-size: 0.85rem;
+    color: var(--vscode-descriptionForeground);
+    margin-bottom: 0.3rem;
+  }
+  .empty,
+  .error,
+  .loading {
+    text-align: center;
+    padding: 1rem;
+    color: var(--vscode-descriptionForeground);
+  }
+  .hidden {
+    display: none;
+  }
+</style>
+</head>
+<body>
+  <div class="toolbar">
+    <input id="beads-search" type="search" placeholder="Search by title, id, or text" />
+    <select id="beads-status">
+      <option value="all">All statuses</option>
+    </select>
+    <button id="beads-refresh" type="button">Refresh</button>
+  </div>
+  <div id="beads-loading" class="loading hidden">Loading issues…</div>
+  <div id="beads-error" class="error hidden"></div>
+  <div id="beads-empty" class="empty hidden">No issues to display.</div>
+  <ul id="beads-list" class="issues" aria-live="polite"></ul>
+  <script nonce="{{nonce}}">
+    (function() {
+      const vscode = acquireVsCodeApi();
+      const searchInput = document.getElementById('beads-search');
+      const statusSelect = document.getElementById('beads-status');
+      const refreshButton = document.getElementById('beads-refresh');
+      const listEl = document.getElementById('beads-list');
+      const emptyEl = document.getElementById('beads-empty');
+      const errorEl = document.getElementById('beads-error');
+      const loadingEl = document.getElementById('beads-loading');
+      let issues = [];
+
+      function escapeHtml(value) {
+        return String(value || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function toLower(value) {
+        return typeof value === 'string' ? value.toLowerCase() : '';
+      }
+
+      function getDescription(issue) {
+        const source = issue.description || issue.text || issue.notes || '';
+        const text = String(source);
+        if (text.length > 140) {
+          return text.slice(0, 137) + '…';
+        }
+        return text;
+      }
+
+      function updateStatuses() {
+        const existing = new Set();
+        const selected = statusSelect.value;
+        const options = ['all'];
+        issues.forEach((issue) => {
+          const status = toLower(issue.status);
+          if (status && !existing.has(status)) {
+            options.push(status);
+            existing.add(status);
+          }
+        });
+        statusSelect.innerHTML = options
+          .map((status) => {
+            const label = status === 'all' ? 'All statuses' : status.replace(/_/g, ' ');
+            const selectedAttr = status === selected ? 'selected' : '';
+            return `<option value="${status}" ${selectedAttr}>${label}</option>`;
+          })
+          .join('');
+      }
+
+      function renderList() {
+        const query = toLower(searchInput.value.trim());
+        const statusFilter = statusSelect.value;
+        const filtered = issues.filter((issue) => {
+          const combined = [issue.id, issue.title, issue.description, issue.text, issue.notes]
+            .map(toLower)
+            .some((value) => value.includes(query));
+          const matchesStatus = statusFilter === 'all' || toLower(issue.status) === statusFilter;
+          return (!query || combined) && matchesStatus;
+        });
+
+        listEl.innerHTML = '';
+        if (!filtered.length) {
+          emptyEl.classList.remove('hidden');
+          return;
+        }
+        emptyEl.classList.add('hidden');
+
+        filtered.forEach((issue) => {
+          const li = document.createElement('li');
+          li.className = 'issue';
+          li.tabIndex = 0;
+          const status = toLower(issue.status) || 'unknown';
+          const priority = issue.priority !== undefined ? `P${issue.priority}` : '';
+          const type = issue.type ? String(issue.type) : '';
+          const assignee = issue.assignee ? `@${issue.assignee}` : '';
+          const meta = [status, priority, type, assignee].filter(Boolean).join(' • ');
+          li.innerHTML = `
+            <div class="issue-title">${escapeHtml(issue.id || 'unknown')} · ${escapeHtml(issue.title || 'Untitled')}</div>
+            <div class="issue-meta">${escapeHtml(meta)}</div>
+          `;
+          li.addEventListener('click', () => openIssue(issue.id));
+          li.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+              openIssue(issue.id);
+            }
+          });
+          listEl.appendChild(li);
+        });
+      }
+
+      function openIssue(id) {
+        if (!id) {
+          return;
+        }
+        vscode.postMessage({ type: 'openIssue', id });
+      }
+
+      function setError(message) {
+        if (message) {
+          errorEl.textContent = message;
+          errorEl.classList.remove('hidden');
+        } else {
+          errorEl.textContent = '';
+          errorEl.classList.add('hidden');
+        }
+      }
+
+      function setLoading(isLoading) {
+        if (isLoading) {
+          loadingEl.classList.remove('hidden');
+        } else {
+          loadingEl.classList.add('hidden');
+        }
+      }
+
+      window.addEventListener('message', (event) => {
+        switch (event.data?.type) {
+          case 'issues':
+            issues = Array.isArray(event.data.payload) ? event.data.payload : [];
+            updateStatuses();
+            setError('');
+            renderList();
+            break;
+          case 'error':
+            setError(event.data.payload || 'Unable to load issues');
+            break;
+          case 'loading':
+            setLoading(Boolean(event.data.payload));
+            break;
+          default:
+            break;
+        }
+      });
+
+      refreshButton.addEventListener('click', () => vscode.postMessage({ type: 'refresh' }));
+      searchInput.addEventListener('input', renderList);
+      statusSelect.addEventListener('change', renderList);
+
+      vscode.postMessage({ type: 'ready' });
+    })();
+  </script>
+</body>
+</html>

@@ -1,26 +1,25 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
+import { BeadsIssueService } from "./services/beadsIssueService";
+import { IssuesViewProvider } from "./views/issuesViewProvider";
+import { IssueDetailPanelManager } from "./views/issueDetailPanelManager";
+import { TemplateRenderer } from "./utils/templateRenderer";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const issueService = new BeadsIssueService(workspaceRoot);
+  const templates = new TemplateRenderer(context.extensionUri);
+  const detailManager = new IssueDetailPanelManager(issueService, templates);
+  const viewProvider = new IssuesViewProvider(templates, issueService, async (issueId) => {
+    await detailManager.show(issueId);
+  });
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "beads-ui" is now active!');
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider("beadsIssues.list", viewProvider),
+    vscode.commands.registerCommand("beads-ui.refreshIssues", () => viewProvider.refreshIssues()),
+    detailManager
+  );
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('beads-ui.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from beads-ui!');
-	});
-
-	context.subscriptions.push(disposable);
+  console.log("Beads UI extension activated");
 }
 
-// This method is called when your extension is deactivated
 export function deactivate() {}

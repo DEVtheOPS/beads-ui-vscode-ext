@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="{{csp}}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: var(--vscode-font-family);
+      font-size: var(--vscode-font-size);
+      color: var(--vscode-foreground);
+      background: var(--vscode-editor-background);
+      margin: 0;
+      padding: 2rem;
+      max-width: 1200px;
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--vscode-editor-foreground);
+    }
+
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      color: var(--vscode-editor-foreground);
+    }
+
+    section {
+      margin-bottom: 2rem;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .meta-item {
+      background: var(--vscode-editorWidget-background);
+      border: 1px solid var(--vscode-editorWidget-border);
+      border-radius: 4px;
+      padding: 1rem;
+      transition: background-color 0.2s;
+    }
+
+    .meta-item:hover {
+      background: var(--vscode-list-hoverBackground);
+    }
+
+    .meta-item label {
+      display: block;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      color: var(--vscode-descriptionForeground);
+      margin-bottom: 0.4rem;
+      letter-spacing: 0.08em;
+      font-weight: 600;
+    }
+
+    .meta-item div {
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    .description {
+      white-space: pre-wrap;
+      line-height: 1.6;
+      padding: 1.25rem;
+      background: var(--vscode-editorWidget-background);
+      border-radius: 4px;
+      border: 1px solid var(--vscode-editorWidget-border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--vscode-editorWidget-background);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid var(--vscode-editorWidget-border);
+    }
+
+    table th {
+      background: var(--vscode-editorGroupHeader-tabsBackground);
+      border-bottom: 2px solid var(--vscode-editorWidget-border);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--vscode-descriptionForeground);
+    }
+
+    table td {
+      border-bottom: 1px solid var(--vscode-editorWidget-border);
+      padding: 0.75rem 1rem;
+    }
+
+    table tr:last-child td {
+      border-bottom: none;
+    }
+
+    table tr:hover {
+      background: var(--vscode-list-hoverBackground);
+    }
+
+    .link-button {
+      appearance: none;
+      background: var(--vscode-button-background);
+      border: none;
+      color: var(--vscode-button-foreground);
+      cursor: pointer;
+      padding: 0.4rem 0.8rem;
+      font: inherit;
+      font-size: 0.85rem;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+
+    .link-button:hover {
+      background: var(--vscode-button-hoverBackground);
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 3px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border: 1px solid;
+    }
+
+    .status-open {
+      background-color: var(--vscode-terminal-ansiBlue);
+      color: var(--vscode-terminal-background);
+      border-color: var(--vscode-terminal-ansiBlue);
+      opacity: 0.9;
+    }
+
+    .status-closed {
+      background-color: var(--vscode-terminal-ansiGreen);
+      color: var(--vscode-terminal-background);
+      border-color: var(--vscode-terminal-ansiGreen);
+      opacity: 0.9;
+    }
+
+    .status-in_progress {
+      background-color: var(--vscode-terminal-ansiYellow);
+      color: var(--vscode-terminal-background);
+      border-color: var(--vscode-terminal-ansiYellow);
+      opacity: 0.9;
+    }
+
+    .status-blocked {
+      background-color: var(--vscode-terminal-ansiRed);
+      color: var(--vscode-terminal-background);
+      border-color: var(--vscode-terminal-ansiRed);
+      opacity: 0.9;
+    }
+
+    pre {
+      background: var(--vscode-editorWidget-background);
+      padding: 1.25rem;
+      border-radius: 4px;
+      overflow-x: auto;
+      border: 1px solid var(--vscode-editorWidget-border);
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .state {
+      padding: 3rem 1rem;
+      text-align: center;
+      color: var(--vscode-descriptionForeground);
+    }
+
+    .state.error {
+      color: var(--vscode-errorForeground);
+    }
+
+    code {
+      font-family: var(--vscode-editor-font-family);
+      font-size: 0.9em;
+      background: var(--vscode-textCodeBlock-background);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      color: var(--vscode-textPreformat-foreground);
+    }
+  </style>
+</head>
+
+<body>
+  @if(viewState === 'loading')
+  <div class="state">Loading {{ issueId }}…</div>
+  @elseif(viewState === 'empty')
+  <div class="state">Issue {{ issueId }} was not found.</div>
+  @elseif(viewState === 'error')
+  <div class="state error">Failed to load {{ issueId }}: {{ errorMessage }}</div>
+  @elseif(viewState === 'ready' && detail)
+  <h1>{{ detail.title }} ({{ detail.id }})</h1>
+  <div class="meta-grid">
+    @each((meta) in detail.meta)
+    <div class="meta-item">
+      <label>{{ meta.label }}</label>
+      <div>{{ meta.value }}</div>
+    </div>
+    @endeach
+  </div>
+  <section>
+    <h2>Description</h2>
+    <div class="description">{{{ detail.descriptionHtml }}}</div>
+  </section>
+  <section>
+    <h2>Related Issues</h2>
+    @if(detail.relatedIssues.length)
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Type</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        @each((related) in detail.relatedIssues)
+        <tr>
+          <td><code>{{ related.id }}</code></td>
+          <td>{{ related.title }}</td>
+          <td>{{ related.type }}</td>
+          <td><span class="status-badge status-{{ related.status }}">{{ related.status }}</span></td>
+          <td><button type="button" class="link-button" data-issue-id="{{ related.id }}">Open</button></td>
+        </tr>
+        @endeach
+      </tbody>
+    </table>
+    @else
+    <p
+      style="color: var(--vscode-descriptionForeground); padding: 1rem; background: var(--vscode-editorWidget-background); border-radius: 8px;">
+      No related issues.</p>
+    @endif
+  </section>
+  {{-- <section>
+    <h2>Raw JSON</h2>
+    <pre>{{ detail.rawJson }}</pre>
+  </section> --}}
+  @else
+  <div class="state">Unknown viewState: {{ viewState }}</div>
+  @endif
+  <script nonce="{{nonce}}">
+    const vscode = acquireVsCodeApi();
+    document.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) {
+        return;
+      }
+      const trigger = target.closest('[data-issue-id]');
+      if (trigger) {
+        const issueId = trigger.getAttribute('data-issue-id');
+        if (issueId) {
+          vscode.postMessage({ type: 'openIssue', id: issueId });
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
