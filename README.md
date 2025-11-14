@@ -2,6 +2,8 @@
 
 [![Release](https://img.shields.io/github/v/release/DEVtheOPS/beads-ui-vscode-ext)](https://github.com/DEVtheOPS/beads-ui-vscode-ext/releases)
 [![CI](https://img.shields.io/github/actions/workflow/status/DEVtheOPS/beads-ui-vscode-ext/tests.yml?branch=main&label=tests)](https://github.com/DEVtheOPS/beads-ui-vscode-ext/actions/workflows/tests.yml)
+![Visual Studio Marketplace Last Updated](https://img.shields.io/visual-studio-marketplace/last-updated/DEVtheOPS.beads-ui)
+
 [![License](https://img.shields.io/github/license/DEVtheOPS/beads-ui-vscode-ext)](LICENSE)
 
 A VSCode extension that provides a user-friendly interface for working with [beads](https://github.com/steveyegge/beads) - a dependency-aware issue tracker where issues are chained together like beads.
