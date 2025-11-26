@@ -8,7 +8,7 @@ export function activate(context: vscode.ExtensionContext) {
   const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
   const issueService = new BeadsIssueService(workspaceRoot);
   const templates = new TemplateRenderer(context.extensionUri);
-  const detailManager = new IssueDetailPanelManager(issueService, templates);
+  const detailManager = new IssueDetailPanelManager(issueService, templates, context.extensionPath);
   const viewProvider = new IssuesViewProvider(
     templates,
     issueService,

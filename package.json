@@ -2,7 +2,7 @@
   "name": "beads-ui",
   "displayName": "beads-ui",
   "description": "An unofficial VSCode extension to make it working with beads easier",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "author": {
     "name": "DEVtheOPS"
   },
@@ -46,7 +46,7 @@
         {
           "id": "beadsIssues",
           "title": "Beads",
-          "icon": "resources/beads.svg"
+          "icon": "resources/beads-activity-bar.svg"
         }
       ]
     },
@@ -56,7 +56,7 @@
           "type": "webview",
           "id": "beadsIssues.list",
           "name": "Issues",
-          "icon": "resources/beads.svg"
+          "icon": "resources/beads-activity-bar.svg"
         }
       ]
     },

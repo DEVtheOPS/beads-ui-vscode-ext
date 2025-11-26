@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as path from "path";
 import { BdIssue } from "../types";
 import { BeadsIssueService } from "../services/beadsIssueService";
 import { TemplateRenderer } from "../utils/templateRenderer";
@@ -7,7 +8,11 @@ import { getNonce, formatDescription, extractRelatedIssuesFromIssue } from "../u
 export class IssueDetailPanelManager implements vscode.Disposable {
   private readonly panels = new Map<string, vscode.WebviewPanel>();
 
-  constructor(private readonly issueService: BeadsIssueService, private readonly templates: TemplateRenderer) {}
+  constructor(
+    private readonly issueService: BeadsIssueService,
+    private readonly templates: TemplateRenderer,
+    private readonly extensionPath: string
+  ) {}
 
   async show(issueId: string) {
     if (!issueId) {
@@ -25,6 +30,7 @@ export class IssueDetailPanelManager implements vscode.Disposable {
     const panel = vscode.window.createWebviewPanel("beadsIssueDetails", `Beads ${issueId}`, vscode.ViewColumn.Active, {
       enableScripts: true,
     });
+    panel.iconPath = vscode.Uri.file(path.join(this.extensionPath, "resources", "beads.svg"));
     this.panels.set(issueId, panel);
 
     panel.onDidDispose(() => {

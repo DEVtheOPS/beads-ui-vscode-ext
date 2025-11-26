@@ -68,6 +68,12 @@ const extensionConfig = {
     infrastructureLogging: {
         level: "log", // enables logging required for problem matchers
     },
-    plugins: []
+    plugins: [
+        new CopyWebpackPlugin({
+            patterns: [
+                { from: 'resources', to: 'resources' }
+            ]
+        })
+    ]
 };
 module.exports = [extensionConfig];
